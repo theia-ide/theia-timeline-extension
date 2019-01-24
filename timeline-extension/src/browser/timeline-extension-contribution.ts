@@ -1,33 +1,32 @@
-import { injectable, inject } from "inversify";
-import { CommandContribution, CommandRegistry, MenuContribution, MenuModelRegistry, MessageService } from "@theia/core/lib/common";
-import { CommonMenus } from "@theia/core/lib/browser";
+import { injectable } from 'inversify';
+import { Command, CommandRegistry, CommandContribution } from '@theia/core';
+import { WidgetOpenHandler } from '@theia/core/lib/browser';
+import URI from '@theia/core/lib/common/uri';
+import { TimelineExtensionWidget, TimelineExtensionWidgetOptions } from './timeline-extension-widget';
 
-export const TimelineExtensionCommand = {
-    id: 'TimelineExtension.command',
-    label: "Shows a message"
-};
-
-@injectable()
-export class TimelineExtensionCommandContribution implements CommandContribution {
-
-    constructor(
-        @inject(MessageService) private readonly messageService: MessageService,
-    ) { }
-
-    registerCommands(registry: CommandRegistry): void {
-        registry.registerCommand(TimelineExtensionCommand, {
-            execute: () => this.messageService.info('Hello World!')
-        });
-    }
+export namespace TimelineExtensionCommands {
+    export const OPEN: Command = {
+        id: 'timeline:open',
+        label: 'Open Timeline'
+    };
 }
 
 @injectable()
-export class TimelineExtensionMenuContribution implements MenuContribution {
+export class TimelineExtensionContribution extends WidgetOpenHandler<TimelineExtensionWidget> implements CommandContribution {
+    protected createWidgetOptions(uri: URI): TimelineExtensionWidgetOptions {
+        return {
+            profileURI: uri.path.toString()
+        };
+    }
 
-    registerMenus(menus: MenuModelRegistry): void {
-        menus.registerMenuAction(CommonMenus.EDIT_FIND, {
-            commandId: TimelineExtensionCommand.id,
-            label: 'Say Hello'
-        });
+    readonly id = TimelineExtensionWidget.ID;
+    readonly label = 'Open timeline';
+
+    registerCommands(registry: CommandRegistry): void {
+        registry.registerCommand(TimelineExtensionCommands.OPEN);
+    }
+
+    canHandle(uri: URI): number {
+        return 100;
     }
 }

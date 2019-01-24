@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "prepare": "lerna run prepare",
+    "watch": "lerna run watch --parallel",
     "rebuild:browser": "theia rebuild:browser",
     "rebuild:electron": "theia rebuild:electron"
   },
