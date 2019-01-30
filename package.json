@@ -10,6 +10,6 @@
     "lerna": "2.4.0"
   },
   "workspaces": [
-    "timeline-extension", "browser-app", "electron-app"
+    "timeline-chart/timeline-chart", "timeline-extension", "browser-app", "electron-app"
   ]
 }
