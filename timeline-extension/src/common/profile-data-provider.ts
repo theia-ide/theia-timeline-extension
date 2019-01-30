@@ -1,11 +1,12 @@
 import { FileResourceResolver } from '@theia/filesystem/lib/browser';
+import { TimelineChart } from 'timeline-chart/lib/time-graph-model'
 import URI from '@theia/core/lib/common/uri';
 
-export type Log = { code: Array<Code>, ticks: Array<Ticks> }
-export type Ticks = { tm: number, vm: number, s: Array<number> };
+export type Log = { code: Code[], ticks: Ticks[] }
+export type Ticks = { tm: number, vm: number, s: number[] };
 export type Code = { name: string, type: string, func?: number, kind?: string, tm?: number };
-export type Stacks = Array<Array<number>>;
-export type Names = Array<string>;
+export type Stacks = Array<number[]>;
+export type Names = string[];
 
 export class ProfileDataProvider {
 
@@ -13,18 +14,15 @@ export class ProfileDataProvider {
     }
 
     async getData() {
-        console.log(window.location.hash);
         const uri = new URI(this.uri).withScheme('file');
         const resource = await this.resourceResolver.resolve(uri);
         const content = await resource.readContents();
         const json = JSON.parse(content);
-        console.log("HEYHO", json);
         const namesAndStacks = this.v8logToStacks(json);
-        console.log('stacks', namesAndStacks);
         const levels = this.mergeStacks(namesAndStacks.stacks);
-        console.log('Levels', levels);
-
-
+        const convertedJson = this.convertData(levels, namesAndStacks.names);
+        console.log(convertedJson);
+        return convertedJson;
     }
 
     protected v8logToStacks(log: Log): { names: Names, stacks: Stacks } {
@@ -122,7 +120,7 @@ export class ProfileDataProvider {
             return 0;
         });
 
-        const levels:Array<Array<number>> = [];
+        const levels: Array<number[]> = [];
         const queue = [0, 0, stacks.length - 1];
 
         // use a queue instead of recursion so that we don't hit max call stack limit
@@ -131,7 +129,7 @@ export class ProfileDataProvider {
             const left = queue.pop() || 0;
             const level = queue.pop() || 0;
 
-            let i:number = left;
+            let i: number = left;
 
             while (i <= right) {
                 const id = stacks[i][level];
@@ -158,15 +156,67 @@ export class ProfileDataProvider {
         }
 
         // delta-encode bar positions for smaller output
-        for (const level of levels) {
-            let prev = 0;
-            for (let i = 0; i < level.length; i += 3) {
-                const right = level[i] + level[i + 1];
-                level[i] -= prev;
-                prev = right;
-            }
-        }
+        // for (const level of levels) {
+        //     let prev = 0;
+        //     for (let i = 0; i < level.length; i += 3) {
+        //         const right = level[i] + level[i + 1];
+        //         level[i] -= prev;
+        //         prev = right;
+        //     }
+        // }
 
         return levels;
+    }
+
+    protected convertData(levels: Array<number[]>, names: string[]): TimelineChart.TimeGraphModel {
+        const rows: TimelineChart.TimeGraphRowModel[] = [];
+        let totalLength: number = 0;
+        levels.forEach((level: number[], idx: number) => {
+            const row = this.getRowData(level, names, idx);
+            rows.push(row);
+            if (totalLength < row.range.end) {
+                totalLength = row.range.end;
+            }
+        });
+        return {
+            arrows: [],
+            id: 'nodeprof',
+            rows,
+            totalLength
+        }
+    }
+
+    protected getRowData(level: number[], names: string[], idx: number) {
+        const states = [];
+        let start: number = 0;
+        let end: number = 0;
+        for (let i = 0; i < level.length; i += 3) {
+            const stateSampleIndex = level[i]; // the x position of the state
+            const stateSamples = level[i + 1]; // the width of the state
+            const nameId = level[i + 2];
+            const stateEnd = stateSampleIndex + stateSamples;
+            const state: TimelineChart.TimeGraphRowElementModel = {
+                id: 'state-' + idx + "-" + stateSampleIndex,
+                label: names[nameId],
+                range: {
+                    start: stateSampleIndex,
+                    end: stateEnd
+                }
+            };
+            states.push(state);
+            if (stateEnd > end) {
+                end = stateEnd;
+            }
+            if (i === 0) {
+                start = stateSampleIndex;
+            }
+        };
+        const row: TimelineChart.TimeGraphRowModel = {
+            id: idx,
+            name: 'Row ' + idx,
+            range: { start, end },
+            states
+        }
+        return row;
     }
 }
