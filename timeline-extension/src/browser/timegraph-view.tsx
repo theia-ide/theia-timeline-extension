@@ -21,9 +21,9 @@ export class TimeGraphView {
     protected styleConfig = {
         mainWidth: 1000,
         mainHeight: 300,
-        naviBackgroundColor: 0xf7eaaf,
-        chartBackgroundColor: 0xf9f6e8,
-        cursorColor: 0xb77f09
+        naviBackgroundColor: 0x3f3f3f,
+        chartBackgroundColor: 0x3f3f3f,
+        cursorColor: 0xbfbfbf
     }
     protected rowHeight = 15;
     protected totalHeight: number = 0;
@@ -149,12 +149,13 @@ export class TimeGraphView {
         }
         this.totalHeight = this.timeGraphData.rows.length * this.rowHeight;
         this.rowController.totalHeight = this.totalHeight;
+        window.onresize = () => this.onWidgetResize();
         this.onWidgetResize();
     }
 
     renderTimeGraphChart(): React.ReactNode {
         return <React.Fragment>
-            {this.renderMainGraphContent()};
+            {this.renderMainGraphContent()}
             <div id='main-vscroll'>
                 {this.getVerticalScrollbar()}
             </div>

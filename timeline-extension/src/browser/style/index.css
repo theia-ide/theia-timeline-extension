@@ -1,5 +1,6 @@
 #timegraph-main {
     display: flex;
+    margin: 20px;
 }
 
 #main-timegraph-content {
