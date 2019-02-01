@@ -216,8 +216,6 @@ input.pipe(concat((buf) => {
     provider.getData(buf).then(json => {
         const src = JSON.stringify(json);
 
-        console.log(json);
-
         fs.writeFileSync("timeline-data.json", src);
     })
 

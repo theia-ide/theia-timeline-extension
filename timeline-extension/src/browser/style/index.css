@@ -1,0 +1,29 @@
+#timegraph-main {
+    display: flex;
+}
+
+#main-timegraph-content {
+    flex: 1;
+}
+
+.horizontal-canvas {
+    width: 100% !important;
+}
+
+#main {
+    border: 1px solid;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+}
+
+.innerContainer {
+    width: 100%;
+}
+
+#main-vscroll {
+    margin-top: 30px;
+}

@@ -21,7 +21,6 @@ export class ProfileDataProvider {
         if(!(json.arrows && json.rows && json.id && json.totalLength)){
             throw('The file needs a proper json format fitting the TimelineChart.TimeGraphModel interface.');
         }
-        console.log(json);
         return json;
     }
 }

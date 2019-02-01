@@ -8,6 +8,8 @@ import { TimelineExtensionWidget, TimelineExtensionWidgetOptions } from "./timel
 import { WidgetFactory, OpenHandler } from "@theia/core/lib/browser";
 import { TimelineExtensionContribution } from "./timeline-extension-contribution";
 
+import '../../src/browser/style/index.css';
+
 export default new ContainerModule(bind => {
     bind(TimelineExtensionWidget).toSelf();
     bind<WidgetFactory>(WidgetFactory).toDynamicValue(context => ({

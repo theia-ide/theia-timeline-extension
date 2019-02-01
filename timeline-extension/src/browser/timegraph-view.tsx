@@ -4,7 +4,7 @@ import { TimeGraphUnitController } from 'timeline-chart/lib/time-graph-unit-cont
 import { TimeGraphAxis } from 'timeline-chart/lib/layer/time-graph-axis';
 import { TimeGraphAxisCursors } from 'timeline-chart/lib/layer/time-graph-axis-cursors';
 import { TimeGraphChartGrid } from 'timeline-chart/lib/layer/time-graph-chart-grid';
-import { TimeGraphChart } from 'timeline-chart/lib/layer/time-graph-chart';
+import { TimeGraphChart, TimeGraphChartProviders } from 'timeline-chart/lib/layer/time-graph-chart';
 import { TimeGraphChartCursors } from 'timeline-chart/lib/layer/time-graph-chart-cursors';
 import { TimeGraphChartSelectionRange } from 'timeline-chart/lib/layer/time-graph-chart-selection-range';
 import { TimeGraphNavigator } from 'timeline-chart/lib/layer/time-graph-navigator';
@@ -40,14 +40,21 @@ export class TimeGraphView {
 
     protected styleMap = new Map<string, TimeGraphRowElementStyle>();
 
-    constructor(uri: string, resourceResolver: FileResourceResolver) {
+    protected horizontalContainer: React.RefObject<HTMLDivElement>;
+
+    protected widgetResizeHandlers: (() => void)[] = [];
+    protected readonly addWidgetResizeHandler = (h: () => void) => {
+        this.widgetResizeHandlers.push(h);
+    }
+
+    constructor(uri: string, resourceResolver: FileResourceResolver, protected updateHandler: () => void) {
         this.dataProvider = new ProfileDataProvider(uri, resourceResolver);
         this.unitController = new TimeGraphUnitController(0);
         this.rowController = new TimeGraphRowController(this.rowHeight, this.totalHeight);
 
         this.unitController.scaleSteps = [1, 2, 5, 10];
 
-        const providers = {
+        const providers: TimeGraphChartProviders = {
             dataProvider: async (range: TimelineChart.TimeGraphRange, resolution: number) => {
                 if (this.unitController) {
                     const length = range.end - range.start;
@@ -93,6 +100,7 @@ export class TimeGraphView {
                 ];
                 let style: TimeGraphRowElementStyle | undefined = styles[0];
                 const val = model.label;
+
                 style = this.styleMap.get(val);
                 if (!style) {
                     style = styles[(this.styleMap.size % styles.length)];
@@ -101,7 +109,8 @@ export class TimeGraphView {
                 return {
                     color: style.color,
                     height: style.height,
-                    borderWidth: model.selected ? 1 : 0
+                    borderWidth: model.selected ? 2 : 0,
+                    borderColor: 0x000000
                 };
             },
             rowStyleProvider: (row: TimelineChart.TimeGraphRowModel) => {
@@ -113,6 +122,8 @@ export class TimeGraphView {
                 }
             }
         }
+
+        this.horizontalContainer = React.createRef();
 
         this.chartLayer = new TimeGraphChart('timeGraphChart', providers, this.rowController);
         let selectedElement: TimeGraphRowElement;
@@ -138,19 +149,30 @@ export class TimeGraphView {
         }
         this.totalHeight = this.timeGraphData.rows.length * this.rowHeight;
         this.rowController.totalHeight = this.totalHeight;
+        this.onWidgetResize();
     }
 
     renderTimeGraphChart(): React.ReactNode {
         return <React.Fragment>
-            <div>
-                {this.getAxisContainer()}
-                {this.getChartContainer()}
-                {this.getNaviContainer()}
-            </div>
+            {this.renderMainGraphContent()};
             <div id='main-vscroll'>
                 {this.getVerticalScrollbar()}
             </div>
         </React.Fragment >
+    }
+
+    onWidgetResize() {
+        this.styleConfig.mainWidth = this.horizontalContainer.current ? this.horizontalContainer.current.clientWidth : 1000;
+        this.updateHandler();
+        this.widgetResizeHandlers.forEach(h => h());
+    }
+
+    protected renderMainGraphContent() {
+        return <div id='main-timegraph-content' ref={this.horizontalContainer}>
+            {this.getAxisContainer()}
+            {this.getChartContainer()}
+            {this.getNaviContainer()}
+        </div>
     }
 
     protected getAxisContainer() {
@@ -162,8 +184,10 @@ export class TimeGraphView {
                 id: 'timegraph-axis',
                 height: 30,
                 width: this.styleConfig.mainWidth,
-                backgroundColor: 0xFFFFFF
+                backgroundColor: 0xFFFFFF,
+                classNames: 'horizontal-canvas'
             }}
+            onWidgetResize={this.addWidgetResizeHandler}
             unitController={this.unitController}
             layer={[axisLayer, axisCursorLayer]}>
         </ReactTimeGraphContainer>;
@@ -190,9 +214,11 @@ export class TimeGraphView {
                     id: 'timegraph-chart',
                     height: this.styleConfig.mainHeight,
                     width: this.styleConfig.mainWidth,
-                    backgroundColor: this.styleConfig.chartBackgroundColor
+                    backgroundColor: this.styleConfig.chartBackgroundColor,
+                    classNames: 'horizontal-canvas'
                 }
             }
+            onWidgetResize={this.addWidgetResizeHandler}
             unitController={this.unitController}
             id='timegraph-chart'
             layer={[
@@ -210,10 +236,13 @@ export class TimeGraphView {
                 width: this.styleConfig.mainWidth,
                 height: 10,
                 id: 'navi',
-                backgroundColor: this.styleConfig.naviBackgroundColor
+                backgroundColor: this.styleConfig.naviBackgroundColor,
+                classNames: 'horizontal-canvas'
             }}
+            onWidgetResize={this.addWidgetResizeHandler}
             unitController={this.unitController}
-            layer={[navi]}></ReactTimeGraphContainer>
+            layer={[navi]}
+        ></ReactTimeGraphContainer>
     }
 
     protected getVerticalScrollbar() {
@@ -225,6 +254,7 @@ export class TimeGraphView {
                 height: this.styleConfig.mainHeight,
                 backgroundColor: this.styleConfig.naviBackgroundColor
             }}
+            onWidgetResize={this.addWidgetResizeHandler}
             unitController={this.unitController}
             layer={[this.vscrollLayer]}
         ></ReactTimeGraphContainer>;
@@ -236,18 +266,24 @@ export namespace ReactTimeGraphContainer {
         id: string,
         options: TimeGraphContainerOptions,
         unitController: TimeGraphUnitController,
-        layer: TimeGraphLayer[]
+        layer: TimeGraphLayer[],
+        onWidgetResize: (handler: () => void) => void
     }
 }
 
 export class ReactTimeGraphContainer extends React.Component<ReactTimeGraphContainer.Props> {
     protected ref: HTMLCanvasElement | undefined;
+    protected container?: TimeGraphContainer;
 
     componentDidMount() {
-        const container = new TimeGraphContainer(this.props.options, this.props.unitController, this.ref);
+        this.container = new TimeGraphContainer(this.props.options, this.props.unitController, this.ref);
         this.props.layer.forEach(l => {
-            container.addLayer(l);
+            this.container && this.container.addLayer(l);
         });
+
+        this.props.onWidgetResize(() => {
+            this.container && this.container.reInitCanvasSize(this.props.options.width);
+        })
     }
 
     render() {
