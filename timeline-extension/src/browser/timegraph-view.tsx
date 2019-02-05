@@ -23,7 +23,8 @@ export class TimeGraphView {
         mainHeight: 300,
         naviBackgroundColor: 0x3f3f3f,
         chartBackgroundColor: 0x3f3f3f,
-        cursorColor: 0xbfbfbf
+        cursorColor: 0x8888ff,
+        lineColor: 0xbbbbbb
     }
     protected rowHeight = 15;
     protected totalHeight: number = 0;
@@ -88,13 +89,13 @@ export class TimeGraphView {
             rowElementStyleProvider: (model: TimelineChart.TimeGraphRowElementModel) => {
                 const styles: TimeGraphRowElementStyle[] = [
                     {
-                        color: 0x11ad1b,
+                        color: 0xf19d0b,
                         height: this.rowHeight * 0.8
                     }, {
-                        color: 0xbc2f00,
+                        color: 0xf0670a,
                         height: this.rowHeight * 0.7
                     }, {
-                        color: 0xccbf5d,
+                        color: 0xef2809,
                         height: this.rowHeight * 0.6
                     }
                 ];
@@ -109,8 +110,8 @@ export class TimeGraphView {
                 return {
                     color: style.color,
                     height: style.height,
-                    borderWidth: model.selected ? 2 : 0,
-                    borderColor: 0x000000
+                    borderWidth: model.selected ? 4 : 0,
+                    borderColor: 0xeef20c
                 };
             },
             rowStyleProvider: (row: TimelineChart.TimeGraphRowModel) => {
@@ -126,6 +127,11 @@ export class TimeGraphView {
         this.horizontalContainer = React.createRef();
 
         this.chartLayer = new TimeGraphChart('timeGraphChart', providers, this.rowController);
+        this.chartLayer.registerRowElementMouseInteractions({
+            click: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
+                console.log("Element Label", el.model.label);
+            }
+        });
         let selectedElement: TimeGraphRowElement;
         this.chartLayer.onSelectedRowElementChanged((model) => {
             const el = this.chartLayer.getElementById(model.id);
@@ -195,7 +201,10 @@ export class TimeGraphView {
     }
 
     protected getAxisLayer() {
-        const timeAxisLayer = new TimeGraphAxis('timeGraphAxis', { color: this.styleConfig.naviBackgroundColor });
+        const timeAxisLayer = new TimeGraphAxis('timeGraphAxis', {
+            color: this.styleConfig.naviBackgroundColor,
+            lineColor: this.styleConfig.lineColor
+        });
         return timeAxisLayer;
     }
 
@@ -204,7 +213,7 @@ export class TimeGraphView {
     }
 
     protected getChartContainer() {
-        const grid = new TimeGraphChartGrid('timeGraphGrid', this.rowHeight);
+        const grid = new TimeGraphChartGrid('timeGraphGrid', this.rowHeight, this.styleConfig.lineColor);
 
         const cursors = new TimeGraphChartCursors('chart-cursors', this.chartLayer, this.rowController, { color: this.styleConfig.cursorColor });
         const selectionRange = new TimeGraphChartSelectionRange('chart-selection-range', { color: this.styleConfig.cursorColor });
