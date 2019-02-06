@@ -1,0 +1,5 @@
+ports:
+    - port: 3000
+tasks:
+    - init: git clone https://github.com/theia-ide/timeline-chart.git && yarn
+      command: cd browser-app && yarn start --hostname=0.0.0.0 ../example
