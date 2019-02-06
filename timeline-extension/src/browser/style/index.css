@@ -28,3 +28,18 @@ canvas {
 #main-vscroll {
     margin-top: 30px;
 }
+
+.info-container {
+    display: flex;
+    margin: 20px;
+}
+
+.info-header {
+    font-size: larger;
+    font-weight: bold;
+}
+
+.info-container .info {
+    width: 30%;
+    color: #ccc;
+}

@@ -48,12 +48,18 @@ export class TimeGraphView {
         this.widgetResizeHandlers.push(h);
     }
 
-    constructor(uri: string, resourceResolver: FileResourceResolver, protected updateHandler: () => void) {
+    constructor(uri: string, resourceResolver: FileResourceResolver, protected handler: {
+        updateHandler: () => void,
+        selectionHandler: (el: TimeGraphRowElement) => void,
+        mouseOverHandler: (el: TimeGraphRowElement) => void
+        mouseOutHandler: (el: TimeGraphRowElement) => void
+    }) {
         this.dataProvider = new ProfileDataProvider(uri, resourceResolver);
         this.unitController = new TimeGraphUnitController(0);
         this.rowController = new TimeGraphRowController(this.rowHeight, this.totalHeight);
 
         this.unitController.scaleSteps = [1, 2, 5, 10];
+        this.unitController.discreteScale = true;
 
         const providers: TimeGraphChartProviders = {
             dataProvider: async (range: TimelineChart.TimeGraphRange, resolution: number) => {
@@ -110,7 +116,7 @@ export class TimeGraphView {
                 return {
                     color: style.color,
                     height: style.height,
-                    borderWidth: model.selected ? 4 : 0,
+                    borderWidth: model.selected ? 2 : 0,
                     borderColor: 0xeef20c
                 };
             },
@@ -127,9 +133,23 @@ export class TimeGraphView {
         this.horizontalContainer = React.createRef();
 
         this.chartLayer = new TimeGraphChart('timeGraphChart', providers, this.rowController);
+        let origColor: number | undefined;
         this.chartLayer.registerRowElementMouseInteractions({
             click: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
-                console.log("Element Label", el.model.label);
+                this.handler.selectionHandler(el);
+            },
+            mouseover: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
+                origColor = el.style.color;
+                el.style = {
+                    color: 0xceeda3
+                }
+                this.handler.mouseOverHandler(el);
+            },
+            mouseout: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
+                el.style = {
+                    color: origColor
+                }
+                this.handler.mouseOutHandler(el);
             }
         });
         let selectedElement: TimeGraphRowElement;
@@ -170,7 +190,7 @@ export class TimeGraphView {
 
     onWidgetResize() {
         this.styleConfig.mainWidth = this.horizontalContainer.current ? this.horizontalContainer.current.clientWidth : 1000;
-        this.updateHandler();
+        this.handler.updateHandler();
         this.widgetResizeHandlers.forEach(h => h());
     }
 
