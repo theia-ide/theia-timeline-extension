@@ -20,7 +20,7 @@ export class TimelineExtensionContribution extends WidgetOpenHandler<TimelineExt
     }
 
     readonly id = TimelineExtensionWidget.ID;
-    readonly label = 'Open timeline';
+    readonly label = 'Open Timeline';
 
     registerCommands(registry: CommandRegistry): void {
         registry.registerCommand(TimelineExtensionCommands.OPEN);

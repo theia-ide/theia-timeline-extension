@@ -1,5 +1,28 @@
 # timeline-extension
-The example of how to build the Theia-based applications with the timeline-extension.
+An example of a Theia-based extension using the [timeline-chart library](https://github.com/theia-ide/timeline-chart).
+
+## Open in Gitpod
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/theia-ide/theia-timeline-extension)
+
+It will build and open the theia app automatically.
+
+Here just open the `timeline-data.json` with `Open timeline`
+
+## Create your own timeline-data.json
+Copy your script to profile into the example folder
+
+    cd example
+    node --prof your-script.js
+
+This will create an `isolate-XYZ-v8.log`
+
+    node --prof-process --preprocess isolate-XYZ-v8.log | ./data-converter.js
+
+That will create the `timeline-data.json` which can `open with` -> `Open Timeline``
+
+
+## Run the app locally
 
 ## Getting started
 
@@ -16,13 +39,18 @@ Install yarn.
 
     npm install -g yarn
 
+## Build the app
+
+    yarn
+
 ## Running the browser example
 
     yarn rebuild:browser
     cd browser-app
     yarn start
 
-Open http://localhost:3000 in the browser.
+Open http://localhost:3000 in the browser and here open the example folder of this project.
+Then open timeline-data.json with Timeline.
 
 ## Running the Electron example
 
@@ -30,44 +58,6 @@ Open http://localhost:3000 in the browser.
     cd electron-app
     yarn start
 
-## Developing with the browser example
+Here open the example folder of this project.
+Then open timeline-data.json with Timeline.
 
-Start watching of timeline-extension.
-
-    cd timeline-extension
-    yarn watch
-
-Start watching of the browser example.
-
-    yarn rebuild:browser
-    cd browser-app
-    yarn watch
-
-Launch `Start Browser Backend` configuration from VS code.
-
-Open http://localhost:3000 in the browser.
-
-## Developing with the Electron example
-
-Start watching of timeline-extension.
-
-    cd timeline-extension
-    yarn watch
-
-Start watching of the electron example.
-
-    yarn rebuild:electron
-    cd electron-app
-    yarn watch
-
-Launch `Start Electron Backend` configuration from VS code.
-
-## Publishing timeline-extension
-
-Create a npm user and login to the npm registry, [more on npm publishing](https://docs.npmjs.com/getting-started/publishing-npm-packages).
-
-    npm login
-
-Publish packages with lerna to update versions properly across local packages, [more on publishing with lerna](https://github.com/lerna/lerna#publish).
-
-    npx lerna publish
