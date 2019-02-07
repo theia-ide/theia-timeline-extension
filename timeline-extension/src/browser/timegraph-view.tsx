@@ -134,9 +134,6 @@ export class TimeGraphView {
         this.chartLayer = new TimeGraphChart('timeGraphChart', providers, this.rowController);
         let origColor: number | undefined;
         this.chartLayer.registerRowElementMouseInteractions({
-            click: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
-                this.handler.selectionHandler(el);
-            },
             mouseover: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
                 origColor = el.style.color;
                 el.style = {
@@ -157,6 +154,7 @@ export class TimeGraphView {
             if (el) {
                 selectedElement = el;
             }
+            this.handler.selectionHandler(selectedElement);
         });
         this.vscrollLayer = new TimeGraphVerticalScrollbar('timeGraphVerticalScrollbar', this.rowController);
         this.initialize();
