@@ -58,8 +58,7 @@ export class TimeGraphView {
         this.unitController = new TimeGraphUnitController(0);
         this.rowController = new TimeGraphRowController(this.rowHeight, this.totalHeight);
 
-        this.unitController.scaleSteps = [1, 2, 5, 10];
-        this.unitController.discreteScale = true;
+        this.unitController.scaleSteps = [1, 2];
 
         const providers: TimeGraphChartProviders = {
             dataProvider: async (range: TimelineChart.TimeGraphRange, resolution: number) => {
@@ -167,7 +166,7 @@ export class TimeGraphView {
         this.timeGraphData = await this.dataProvider.getData();
         this.unitController.absoluteRange = this.timeGraphData.totalLength;
         this.unitController.numberTranslator = (theNumber: number) => {
-            return theNumber.toString();
+            return (theNumber - Math.trunc(theNumber)) !== 0 ? '' : theNumber.toString();
         };
         this.unitController.viewRange = {
             start: 0,
