@@ -12,8 +12,7 @@
         "@types/concat-stream": "1.6.0",
         "@theia/core": "latest",
         "@theia/filesystem": "latest",
-        "timeline-chart": "0.0.2",
-        "flamebearer": "^1.1.3",
+        "timeline-chart": "next",
         "concat-stream": "2.0.0"
     },
     "devDependencies": {
