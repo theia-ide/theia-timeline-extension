@@ -50,9 +50,9 @@ export class TimeGraphView {
 
     constructor(uri: string, resourceResolver: FileResourceResolver, protected handler: {
         updateHandler: () => void,
-        selectionHandler: (el: TimeGraphRowElement) => void,
-        mouseOverHandler: (el: TimeGraphRowElement) => void
-        mouseOutHandler: (el: TimeGraphRowElement) => void
+        selectionHandler: (el?: TimeGraphRowElement) => void,
+        mouseOverHandler: (el?: TimeGraphRowElement) => void
+        mouseOutHandler: (el?: TimeGraphRowElement) => void
     }) {
         this.dataProvider = new ProfileDataProvider(uri, resourceResolver);
         this.unitController = new TimeGraphUnitController(0);
@@ -70,9 +70,9 @@ export class TimeGraphView {
                     const newRange: TimelineChart.TimeGraphRange = { start, end };
                     const newResolution: number = resolution * 0.8;
                     this.timeGraphData = await this.dataProvider.getData();
-                    if (selectedElement) {
+                    if (this.timeGraphData && selectedElement) {
                         for (const row of this.timeGraphData.rows) {
-                            const selEl = row.states.find(el => el.id === selectedElement.id);
+                            const selEl = row.states.find(el => !!selectedElement && el.id === selectedElement.id);
                             if (selEl) {
                                 selEl.selected = true;
                                 break;
@@ -80,7 +80,7 @@ export class TimeGraphView {
                         }
                     }
                     return {
-                        rows: this.timeGraphData.rows,
+                        rows: this.timeGraphData ? this.timeGraphData.rows : [],
                         range: newRange,
                         resolution: newResolution
                     };
@@ -121,8 +121,8 @@ export class TimeGraphView {
             },
             rowStyleProvider: (row: TimelineChart.TimeGraphRowModel) => {
                 return {
-                    backgroundColor: 0xe0ddcf,
-                    backgroundOpacity: row.selected ? 0.6 : 0,
+                    backgroundColor: 0xaaaaff,
+                    backgroundOpacity: row.selected ? 0.2 : 0,
                     lineColor: row.data && row.data.hasStates ? 0xdddddd : 0xaa4444,
                     lineThickness: row.data && row.data.hasStates ? 1 : 3
                 }
@@ -148,11 +148,15 @@ export class TimeGraphView {
                 this.handler.mouseOutHandler(el);
             }
         });
-        let selectedElement: TimeGraphRowElement;
+        let selectedElement: TimeGraphRowElement | undefined;
         this.chartLayer.onSelectedRowElementChanged((model) => {
-            const el = this.chartLayer.getElementById(model.id);
-            if (el) {
-                selectedElement = el;
+            if (model) {
+                const el = this.chartLayer.getElementById(model.id);
+                if (el) {
+                    selectedElement = el;
+                }
+            } else {
+                selectedElement = undefined;
             }
             this.handler.selectionHandler(selectedElement);
         });
@@ -162,16 +166,18 @@ export class TimeGraphView {
 
     protected async initialize() {
         this.timeGraphData = await this.dataProvider.getData();
-        this.unitController.absoluteRange = this.timeGraphData.totalLength;
-        this.unitController.numberTranslator = (theNumber: number) => {
-            return (theNumber - Math.trunc(theNumber)) !== 0 ? '' : theNumber.toString();
-        };
-        this.unitController.viewRange = {
-            start: 0,
-            end: this.unitController.absoluteRange
+        if (this.timeGraphData) {
+            this.unitController.absoluteRange = this.timeGraphData.totalLength;
+            this.unitController.numberTranslator = (theNumber: number) => {
+                return (theNumber - Math.trunc(theNumber)) !== 0 ? '' : theNumber.toString();
+            };
+            this.unitController.viewRange = {
+                start: 0,
+                end: this.unitController.absoluteRange
+            }
+            this.totalHeight = this.timeGraphData.rows.length * this.rowHeight;
+            this.rowController.totalHeight = this.totalHeight;
         }
-        this.totalHeight = this.timeGraphData.rows.length * this.rowHeight;
-        this.rowController.totalHeight = this.totalHeight;
         window.onresize = () => this.onWidgetResize();
         this.onWidgetResize();
     }

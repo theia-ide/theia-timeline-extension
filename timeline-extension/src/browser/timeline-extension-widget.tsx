@@ -31,9 +31,9 @@ export class TimelineExtensionWidget extends ReactWidget {
         this.title.closable = true;
 
         this.timeGraphView = new TimeGraphView(this.options.profileURI, this.resourceResolver, {
-            selectionHandler: (el: TimeGraphRowElement) => { this.selected = el; this.update(); },
-            mouseOverHandler: (el: TimeGraphRowElement) => { this.hovered = el; this.update(); },
-            mouseOutHandler: (el: TimeGraphRowElement) => { this.hovered = undefined; this.update(); },
+            selectionHandler: (el?: TimeGraphRowElement) => { this.selected = el; this.update(); },
+            mouseOverHandler: (el?: TimeGraphRowElement) => { this.hovered = el; this.update(); },
+            mouseOutHandler: (el?: TimeGraphRowElement) => { this.hovered = undefined; this.update(); },
             updateHandler: () => { this.update(); }
         });
 
