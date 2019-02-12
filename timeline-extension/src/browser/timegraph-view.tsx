@@ -69,7 +69,7 @@ export class TimeGraphView {
                     const end = range.end + overlap < this.unitController.absoluteRange ? range.end + overlap : this.unitController.absoluteRange;
                     const newRange: TimelineChart.TimeGraphRange = { start, end };
                     const newResolution: number = resolution * 0.8;
-                    this.timeGraphData = await this.dataProvider.getData();
+                    this.timeGraphData = await this.dataProvider.getData(range);
                     if (this.timeGraphData && selectedElement) {
                         for (const row of this.timeGraphData.rows) {
                             const selEl = row.states.find(el => !!selectedElement && el.id === selectedElement.id);
@@ -165,7 +165,7 @@ export class TimeGraphView {
     }
 
     protected async initialize() {
-        this.timeGraphData = await this.dataProvider.getData();
+        this.timeGraphData = await this.dataProvider.getData(this.unitController.viewRange);
         if (this.timeGraphData) {
             this.unitController.absoluteRange = this.timeGraphData.totalLength;
             this.unitController.numberTranslator = (theNumber: number) => {
