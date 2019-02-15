@@ -169,7 +169,7 @@ export class TimeGraphView {
         if (this.timeGraphData) {
             this.unitController.absoluteRange = this.timeGraphData.totalLength;
             this.unitController.numberTranslator = (theNumber: number) => {
-                return (theNumber - Math.trunc(theNumber)) !== 0 ? '' : theNumber.toString();
+                return (theNumber - Math.trunc(theNumber)) !== 0 ? undefined : theNumber.toString();
             };
             this.unitController.viewRange = {
                 start: 0,
