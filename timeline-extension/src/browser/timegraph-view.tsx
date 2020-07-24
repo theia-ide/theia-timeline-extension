@@ -134,14 +134,14 @@ export class TimeGraphView {
         this.chartLayer = new TimeGraphChart('timeGraphChart', providers, this.rowController);
         let origColor: number | undefined;
         this.chartLayer.registerRowElementMouseInteractions({
-            mouseover: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
+            mouseover: (el: TimeGraphRowElement, ev: PIXI.InteractionEvent) => {
                 origColor = el.style.color;
                 el.style = {
                     color: 0xceeda3
                 }
                 this.handler.mouseOverHandler(el);
             },
-            mouseout: (el: TimeGraphRowElement, ev: PIXI.interaction.InteractionEvent) => {
+            mouseout: (el: TimeGraphRowElement, ev: PIXI.InteractionEvent) => {
                 el.style = {
                     color: origColor
                 }
