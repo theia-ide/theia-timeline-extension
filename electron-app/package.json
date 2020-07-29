@@ -14,7 +14,6 @@
     "@theia/languages": "latest",
     "@theia/markers": "latest",
     "@theia/monaco": "latest",
-    "@theia/typescript": "latest",
     "@theia/messages": "latest",
     "timeline-extension": "0.0.0"
   },
